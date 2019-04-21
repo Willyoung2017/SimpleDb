@@ -103,7 +103,7 @@ public class Tuple implements Serializable {
             if (i == (this.fieldValues.length - 1)) {
                 output.append(t.toString()).append("\n");
             } else {
-                output.append(t.toString()).append("\t");
+                output.append(t.toString()).append(" ");
             }
         }
         return output.toString();

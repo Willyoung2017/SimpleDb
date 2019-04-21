@@ -5,8 +5,8 @@ public class test {
 
     public static void main(String[] argv) {
 
-        // construct a 3-column table schema
-        int length = 10;
+        // construct a len-column table schema
+        int length = Integer.parseInt(argv[0]);
         Type[] types = new Type[length];
         String[] names = new String[length];
 
