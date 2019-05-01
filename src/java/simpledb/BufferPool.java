@@ -2,7 +2,7 @@ package simpledb;
 
 import java.io.*;
 
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -101,9 +101,9 @@ public class BufferPool {
             }
 
             /* add page to the buffer pool */
-            if (id2Page.size() >= this.MAX_NUM_PAGES){
+            if (!id2Page.containsKey(pid) && id2Page.size() >= this.MAX_NUM_PAGES){
                 evictPage();
-                throw new DbException("Insufficient space left in buffer pool!");
+                // throw new DbException("Insufficient space left in buffer pool!");
             }
             id2Page.put(pid, page);
         }
@@ -179,6 +179,24 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        try {
+            DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
+            ArrayList<Page> dirtyPages = dbFile.insertTuple(tid, t);
+            // may increase pages due to insert
+            for (Page p:dirtyPages) {
+                if (!id2Page.containsKey(p.getId()) && id2Page.size()==MAX_NUM_PAGES){
+                    evictPage();
+                }
+                id2Page.put(p.getId(), p);
+                id2TId.put(p.getId(), tid);
+                // Marks any pages that were dirtied
+                p.markDirty(true, tid);
+            }
+        } catch (RuntimeException e){
+            System.out.println(e.toString());
+            throw new DbException("Cannot find dbFile or page!");
+        }
+
     }
 
     /**
@@ -198,6 +216,24 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        try {
+            int tableId = t.getRecordId().getPageId().getTableId();
+            DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
+            ArrayList<Page> dirtyPages = dbFile.deleteTuple(tid, t);
+            for (Page p:dirtyPages) {
+                if (!id2Page.containsKey(p.getId()) && id2Page.size()==MAX_NUM_PAGES){
+                    evictPage();
+                }
+                id2Page.put(p.getId(), p);
+                id2TId.put(p.getId(), tid);
+
+                // Marks any pages that were dirtied
+                p.markDirty(true, tid);
+            }
+        } catch (RuntimeException e){
+            System.out.println(e.toString());
+            throw new DbException("Cannot find dbFile or page!");
+        }
     }
 
     /**
@@ -208,7 +244,12 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
+        Iterator<PageId> id2PageIter = id2Page.keySet().iterator();
 
+        while(id2PageIter.hasNext()){
+            HeapPageId thisPageId = (HeapPageId) id2PageIter.next();
+            flushPage(thisPageId);
+        }
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -222,6 +263,8 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+        id2Page.remove(pid);
+        id2TId.remove(pid);
     }
 
     /**
@@ -231,6 +274,15 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+        Page disPage = id2Page.get(pid);
+        if (disPage != null && disPage.isDirty() != null){
+            int tableId = pid.getTableId();
+            DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
+            // Push the specified page to disk.
+            dbFile.writePage(disPage);
+            disPage.setBeforeImage();
+            disPage.markDirty(false, null);
+        }
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -247,6 +299,39 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+        Page dispage = null;
+        LinkedList<PageId> candPageId = new LinkedList<>();
+        Iterator<PageId> id2PageIter = id2Page.keySet().iterator();
+        while(id2PageIter.hasNext()){
+
+            PageId thisPageId = id2PageIter.next();
+
+            dispage = id2Page.get(thisPageId);
+
+            // record clean pages
+            if (dispage.isDirty()==null){
+                candPageId.add(thisPageId);
+            }
+        }
+
+        if (candPageId.size() == 0) {
+            throw new DbException("No suitable page to evict!");
+        }
+
+        Random rand = new Random();
+        PageId chosenPageId = candPageId.get(rand.nextInt(candPageId.size()));
+
+        try {
+            Page chosenPage = id2Page.get(chosenPageId);
+            assert chosenPage.isDirty() == null;
+            flushPage(chosenPageId);
+        }
+        catch (IOException e){
+            System.out.println(e.toString());
+            throw new DbException("Error exists in pages!");
+        }
+        id2Page.remove(chosenPageId);
+        id2TId.remove(chosenPageId);
     }
 
 }
