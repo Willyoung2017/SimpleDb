@@ -99,10 +99,6 @@ public class HashEquiJoin extends Operator {
         while (this.child1.hasNext()){
             Tuple curChild1 = this.child1.next();
             LinkedList<Tuple> equalList = field2TupleList.computeIfAbsent(curChild1.getField(this.p.getField1()), k->new LinkedList<>());
-//            if (equalList == null) {
-//                equalList = new LinkedList<>();
-//                field2TupleList.put(curChild1.getField(this.p.getField1()), equalList);
-//            }
             equalList.add(curChild1);
         }
     }

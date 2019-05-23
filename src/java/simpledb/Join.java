@@ -67,6 +67,10 @@ public class Join extends Operator {
         return this.jointTupleDesc;
     }
 
+    private boolean is_matched(Tuple tuple1, Tuple tuple2){
+        return this.p.filter(tuple1, tuple2);
+    }
+
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
@@ -116,19 +120,17 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        while(true){
-            while(this.nextTuple1 != null && child2.hasNext()){
-                Tuple nextTuple2 = child2.next();
-                if (this.p.filter(this.nextTuple1, nextTuple2)){
+        while(this.child1.hasNext() || this.child2.hasNext()){
+            while(this.nextTuple1 != null && this.child2.hasNext()){
+                Tuple nextTuple2 = this.child2.next();
+                if (is_matched(this.nextTuple1, nextTuple2))
                     return Tuple.joinTuples(this.nextTuple1, nextTuple2, this.jointTupleDesc);
-                }
             }
-            if (!child1.hasNext())
-                return null;
-
-            this.nextTuple1 = child1.next();
-            child2.rewind();
+            if (!this.child1.hasNext()) return null;
+            this.child2.rewind();
+            this.nextTuple1 = this.child1.next();
         }
+        return null;
 
     }
 
