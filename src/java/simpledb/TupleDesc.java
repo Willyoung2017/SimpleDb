@@ -194,10 +194,19 @@ public class TupleDesc implements Serializable {
         if (name == null){
             throw new NoSuchElementException("Name to search cannot be null!");
         }
+//        System.out.println("Start...");
+//        System.out.println("======================");
+//        for (TDItem td : this.tdAr){
+//           System.out.println(name +"..."+td.fieldName);
+//        }
+//        System.out.println("======================");
 
         int idx = 0;
-        for (TDItem td : this.tdAr){
+        for (int i = 0; i < this.numFields; ++i){
+            TDItem td = this.tdAr.get(i);
+//            System.out.println(idx);
             if ((td.fieldName != null) && (td.fieldName.equals(name))){
+//                System.out.println("out");
                 return idx;
             }
             idx += 1;
