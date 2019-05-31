@@ -9,7 +9,7 @@ import java.util.*;
  * size, and the file is simply a collection of those pages. HeapFile works
  * closely with HeapPage. The format of HeapPages is described in the HeapPage
  * constructor.
- * 
+ *
  * @see simpledb.HeapPage#HeapPage
  * @author Sam Madden
  */
@@ -17,7 +17,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Constructs a heap file backed by the specified file.
-     * 
+     *
      * @param f
      *            the file that stores the on-disk backing store for this heap
      *            file.
@@ -39,7 +39,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Returns the File backing this HeapFile on disk.
-     * 
+     *
      * @return the File backing this HeapFile on disk.
      */
     public File getFile() {
@@ -53,7 +53,7 @@ public class HeapFile implements DbFile {
      * HeapFile has a "unique id," and that you always return the same value for
      * a particular HeapFile. We suggest hashing the absolute file name of the
      * file underlying the heapfile, i.e. f.getAbsoluteFile().hashCode().
-     * 
+     *
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId() {
@@ -63,7 +63,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Returns the TupleDesc of the table stored in this DbFile.
-     * 
+     *
      * @return TupleDesc of this DbFile.
      */
     public TupleDesc getTupleDesc() {
@@ -174,6 +174,7 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
         // some code goes here
+//        return new HeapFileIterator(tid, getId(), numPages());
         return new HeapFileItertor(tid);
     }
 
@@ -183,7 +184,6 @@ public class HeapFile implements DbFile {
         private Iterator<Tuple> curPgIterator;
         private TransactionId tid;
         private Tuple next;
-        private int cnt = 0;
         public void open()
                 throws DbException, TransactionAbortedException{
             if (this.is_open){
@@ -192,7 +192,7 @@ public class HeapFile implements DbFile {
             this.curPgNum = 0;
             this.curPgIterator = getPgIter(curPgNum);
             this.is_open = true;
-            this.next = get_next();
+//            this.next = get_next();
         }
 
         public boolean hasNext()
@@ -200,40 +200,58 @@ public class HeapFile implements DbFile {
             if (!this.is_open){
                 return false;
             }
-            return this.next != null;
-        }
+//            return this.next != null;
+            if (this.curPgIterator.hasNext())
+                return true;
 
-        private Tuple get_next()
-                throws DbException, TransactionAbortedException, NoSuchElementException{
-            Tuple nextTuple = null;
-//            cnt += 1;
-//            System.out.println("hhhhhhhh"+this.curPgNum+"qqqqqqqq"+this.cnt);
-
-            while (this.curPgNum < numPages()) {
-                if (this.curPgIterator.hasNext()){
-                    nextTuple = this.curPgIterator.next();
-                    break;
-                }
-                // prev page has no element and go for nxt page
-                this.curPgNum += 1;
-                if (this.curPgNum >= numPages()){
-                    break;
-                }
+            this.curPgNum ++;
+            if (this.curPgNum < numPages()){
                 this.curPgIterator = getPgIter(this.curPgNum);
+                return this.curPgIterator.hasNext();
+
             }
-            // nxtTuple may be null here
-            return nextTuple;
+            return false;
         }
+
+//        private Tuple get_next()
+//                throws DbException, TransactionAbortedException, NoSuchElementException{
+//            Tuple nextTuple = null;
+//
+//            while (this.curPgNum < numPages()) {
+//                if (this.curPgIterator.hasNext()){
+//                    nextTuple = this.curPgIterator.next();
+//                    break;
+//                }
+//                // prev page has no element and go for nxt page
+//                this.curPgNum += 1;
+//                if (this.curPgNum >= numPages()){
+//                    break;
+//                }
+//                this.curPgIterator = getPgIter(this.curPgNum);
+//            }
+//            if (this.curPgIterator.hasNext()){
+//                nextTuple = this.curPgIterator.next();
+//            }
+//            // prev page has no element and go for nxt page
+//            this.curPgNum += 1;
+//            if (this.curPgNum < numPages()){
+//                this.curPgIterator = getPgIter(this.curPgNum);
+//                nextTuple = this.curPgIterator.next();
+//            }
+//
+//            // nxtTuple may be null here
+//            return nextTuple;
+//        }
 
         public Tuple next()
                 throws DbException, TransactionAbortedException, NoSuchElementException{
             if (!this.is_open || !hasNext()){
                 throw new NoSuchElementException();
             }
-            Tuple nextTuple = this.next;
-            this.next = get_next();
+//            Tuple nextTuple = this.next;
+//            this.next = get_next();
 
-            return nextTuple;
+            return this.curPgIterator.next();
         }
 
         public void rewind() throws DbException, TransactionAbortedException{
