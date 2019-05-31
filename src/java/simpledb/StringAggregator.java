@@ -51,7 +51,7 @@ public class StringAggregator implements Aggregator {
 
         countValue += 1;
         field2Value.put(tupField, countValue);
-        System.out.println(tupField+"count"+countValue.toString());
+//        System.out.println(tupField+"count"+countValue.toString());
 
     }
 
