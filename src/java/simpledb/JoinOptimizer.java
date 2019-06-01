@@ -243,6 +243,8 @@ public class JoinOptimizer{
         // some code goes here
 
         int joinSize = this.joins.size();
+        if (joinSize == 0)
+            return this.joins;
         PlanCache planCache = new PlanCache();
         Set<LogicalJoinNode> finalSet = null;
         for (int i = 1; i  <= joinSize; ++i) {

@@ -106,7 +106,8 @@ public class IntHistogram {
                         selectivity = 1.0;
                     break;
                 default:
-                    throw new RuntimeException("Unhandled op!");
+                    return 0.0;
+//                    throw new RuntimeException("Unhandled op!");
             }
             return selectivity;
         }
@@ -168,9 +169,10 @@ public class IntHistogram {
 
                 selectivity = ((v - b_left) / (double) this.width * h + tmp) / this.ntuples;
                 break;
-
+            case LIKE:
+                return 1.0;
             default:
-                throw new RuntimeException("Unhandled op!");
+                return 0.0;
 
         }
 //        System.out.println(selectivity);
