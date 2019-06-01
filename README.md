@@ -8,3 +8,6 @@
 ### Writeup for db3:
 #### https://github.com/Willyoung2017/SimpleDb/blob/master/writeup/db3.pdf
 
+### Writeup for db4:
+#### https://github.com/Willyoung2017/SimpleDb/blob/master/writeup/db4.pdf
+
