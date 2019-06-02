@@ -20,7 +20,7 @@ public class HashEquiJoin extends Operator {
     /**
      * Constructor. Accepts to children to join and the predicate to join them
      * on
-     * 
+     *
      * @param p
      *            The predicate to use to join the children
      * @param child1
@@ -45,7 +45,7 @@ public class HashEquiJoin extends Operator {
         // some code goes here
         return this.jointTupleDesc;
     }
-    
+
     public String getJoinField1Name()
     {
         // some code goes here
@@ -57,10 +57,13 @@ public class HashEquiJoin extends Operator {
         // some code goes here
         return child2.getTupleDesc().getFieldName(this.p.getField2());
     }
-    
+
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        if (this.open){
+            throw  new DbException("HashEquiJoin is open!");
+        }
         this.open = true;
         child1.open();
         child2.open();
@@ -119,7 +122,7 @@ public class HashEquiJoin extends Operator {
      * <p>
      * For example, if one tuple is {1,2,3} and the other tuple is {1,5,6},
      * joined on equality of the first column, then this returns {1,2,3,1,5,6}.
-     * 
+     *
      * @return The next matching tuple.
      * @see JoinPredicate#filter
      */
@@ -159,5 +162,5 @@ public class HashEquiJoin extends Operator {
         this.child1 = children[0];
         this.child2 = children[1];
     }
-    
+
 }

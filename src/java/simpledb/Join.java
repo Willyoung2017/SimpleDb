@@ -14,6 +14,7 @@ public class Join extends Operator {
     private boolean open = false;
     private Tuple nextTuple1 = null;
     private TupleDesc jointTupleDesc = null;
+    private HashEquiJoin hashJoin = null;
     /**
      * Constructor. Accepts to children to join and the predicate to join them
      * on
@@ -27,6 +28,8 @@ public class Join extends Operator {
      */
     public Join(JoinPredicate p, DbIterator child1, DbIterator child2) {
         // some code goes here
+        if (p.getOperator() == Predicate.Op.EQUALS)
+            this.hashJoin = new HashEquiJoin(p, child1, child2);
         this.p = p;
         this.child1 = child1;
         this.child2 = child2;
@@ -74,30 +77,49 @@ public class Join extends Operator {
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
-        super.open();
-        this.child1.open();
-        this.child2.open();
-        this.open = true;
-        this.nextTuple1 = null;
+        if (this.open)
+            throw new DbException("Join is open!");
+        if (this.hashJoin != null) {
+            this.hashJoin.open();
+            this.open = true;
+            super.open();
+        }
+        else {
+            super.open();
+            this.child1.open();
+            this.child2.open();
+            this.open = true;
+            this.nextTuple1 = null;
+        }
     }
 
     public void close() {
         // some code goes here
-        this.child1.close();
-        this.child2.close();
-        super.close();
-        this.open = false;
+        if (this.hashJoin != null) {
+            this.hashJoin.close();
+            this.open = false;
+            super.close();
+        }
+        else {
+            this.child1.close();
+            this.child2.close();
+            super.close();
+            this.open = false;
+        }
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
-        if (this.open){
-            this.child1.rewind();
-            this.child2.rewind();
-            this.nextTuple1 = null;
+        if (this.hashJoin != null)
+            this.hashJoin.rewind();
+        else {
+            if (this.open) {
+                this.child1.rewind();
+                this.child2.rewind();
+                this.nextTuple1 = null;
+            } else
+                throw new DbException("File is closed!");
         }
-        else
-            throw new DbException("File is closed!");
     }
 
     /**
@@ -120,6 +142,9 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
+        if (this.hashJoin != null){
+            return this.hashJoin.fetchNext();
+        }
         while(this.child1.hasNext() || this.child2.hasNext()){
             while(this.nextTuple1 != null && this.child2.hasNext()){
                 Tuple nextTuple2 = this.child2.next();
