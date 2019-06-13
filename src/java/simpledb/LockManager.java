@@ -156,17 +156,18 @@ public class LockManager {
 //            }
         }
         else if (perm == Permissions.READ_WRITE) {
-            synchronized (exclusiveLocks) {
-                if (exclusiveLocks.containsKey(pid)) {
+//            synchronized (exclusiveLocks) {
+            if (exclusiveLocks.containsKey(pid) && exclusiveLocks.get(pid).equals(tid)) {
 //                    if (pid == null) System.out.println("pid is Null!");
-                    TransactionId tt = exclusiveLocks.get(pid);
-//                    if (tt == null) System.out.println("tt is Null!");
-
-                    if (tt.equals(tid)) {
-                        return true;
-                    }
-                }
+//                TransactionId tt =
+////                    if (tt == null) System.out.println("tt is Null!");
+//
+//                if (tt.equals(tid)) {
+//                    return true;
+//                }
+                return true;
             }
+//            }
             while(true){
                 if(waitforWritePerm(tid, pid))
                     break;

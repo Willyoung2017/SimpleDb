@@ -167,12 +167,7 @@ public class BufferPool {
         // not necessary for lab1|lab2
         // if commit, flush dirty pages associated to the transaction to disk
         // if abort, revert any changes made by the transaction by restoring the page to its on-disk state
-//        if (commit) {
-//            flushPages(tid);
-//        }
-//        else {
-//
-//        }
+
         ConcurrentHashMap<TransactionId, LinkedBlockingQueue<PageId>> tid2PageId = lockManager.getExlockTid2PageId();
         if (!tid2PageId.containsKey(tid)) {
 //            System.out.println("Problems occur!");
