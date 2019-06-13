@@ -150,6 +150,7 @@ public class BTreeFileDeleteTest extends SimpleDbTestBase {
 
 	@Test
 	public void testReuseDeletedPages() throws Exception {
+//		System.out.println("pppp");
 		// this should create a B+ tree with 3 leaf nodes
 		BTreeFile threeLeafPageFile = BTreeUtility.createRandomBTreeFile(2, 1005,
 				null, null, 0);

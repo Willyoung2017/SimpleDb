@@ -13,3 +13,6 @@
 *.class
 *.class
 *.class
+*.txt
+*.class
+src/java/simpledb/LockRecord.java

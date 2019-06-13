@@ -176,6 +176,7 @@ public class BTreeFileEncoder {
 			bw.write('\n');
 		}
 		bw.close();
+//		System.out.println("999999");
 		return convert(tempInput, hFile, bFile, npagebytes,
 				numFields, typeAr, fieldSeparator, keyField);
 	}

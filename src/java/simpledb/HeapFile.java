@@ -128,27 +128,36 @@ public class HeapFile implements DbFile {
         int pageNumber = 0;
         while (pageNumber < numPages()) {
             HeapPageId pid = new HeapPageId(getId(), pageNumber);
+//            System.out.println("22");
             HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+//            System.out.println("222");
             if (page.getNumEmptySlots()>0){
                 // find page with empty slots
+//                System.out.println("2222");
+
                 page = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+//                System.out.println("22222");
+
                 insertedPage = page;
                 insertedPage.insertTuple(t);
                 dirtyPage.add(insertedPage);
+//                Database.getBufferPool().releasePage(tid, pid);
+
                 return dirtyPage;
             }
             pageNumber ++;
-            // may need to release page here.
-
+            // need to release page here.
+            Database.getBufferPool().releasePage(tid, pid);
         }
 
 //        System.out.println("hhh");
         // no page to insert
         HeapPageId newPid = new HeapPageId(getId(), numPages());
         HeapPage newPage = new HeapPage(newPid, HeapPage.createEmptyPageData());
-        newPage.insertTuple(t);
         writePage(newPage);
 
+        newPage = (HeapPage) Database.getBufferPool().getPage(tid,newPid,Permissions.READ_WRITE);
+        newPage.insertTuple(t);
         dirtyPage.add(newPage);
 
         return dirtyPage;
@@ -157,16 +166,23 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
-            TransactionAbortedException {
+            TransactionAbortedException, IOException {
         // some code goes here
         PageId pid = t.getRecordId().getPageId();
         if (pid == null)
             throw new DbException("No page found.");
 
         HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+//        System.out.println("heapfile " + "deletion!\n");
+//        FileWriter writer = new FileWriter("the-file-name.txt", true);
+//        writer.write(t.toString()+" is deleted by "+tid.toString()+" in deletion.\n");
+//        writer.close();
         page.deleteTuple(t);
+
         ArrayList<Page> dirtyPage = new ArrayList<>();
         dirtyPage.add(page);
+        // TODO: chek whether to release here
+//        Database.getBufferPool().releasePage(tid, pid);
 
         return dirtyPage;
     }
