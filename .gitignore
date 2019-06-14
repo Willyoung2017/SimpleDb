@@ -16,3 +16,7 @@
 *.txt
 *.class
 src/java/simpledb/LockRecord.java
+*.class
+*.class
+*.class
+*.class
